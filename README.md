@@ -10,7 +10,7 @@
 
 ---
 
-## 🚀 주요 기능 (Key Features)
+## 주요 기능 (Key Features)
 
 * **실시간 양방향 오디오 스트리밍**: WebSocket을 사용하여 사용자의 음성을 실시간으로 서버에 전송하고, AI가 생성한 음성을 지연 없이 스트리밍하여 재생합니다.
 * **지능형 발화 감지 (VAD)**: Azure의 시맨틱 VAD(Voice Activity Detection)를 활용하여 사용자의 발화가 끝나는 시점을 정확하게 감지하고, 2초간의 침묵을 대화 턴(Turn)의 종료로 판단하여 자연스러운 대화 흐름을 만듭니다.
@@ -20,7 +20,7 @@
 
 ---
 
-## 🏗️ 아키텍처 (Architecture)
+## 아키텍처 (Architecture)
 
 이 프로젝트는 WebSocket 기반의 실시간 통신 모델을 따릅니다.
 
@@ -57,7 +57,7 @@
 
 ---
 
-## 🛠️ 기술 스택 (Technology Stack)
+## 기술 스택 (Technology Stack)
 
 * **언어**: Python 3.9+
 * **핵심 Azure 서비스**:
@@ -72,7 +72,7 @@
 
 ---
 
-## ⚙️ 설치 및 실행 방법 (Setup and Run)
+## 설치 및 실행 방법 (Setup and Run)
 
 ### 1. 사전 준비 (Prerequisites)
 
@@ -147,7 +147,7 @@ python main.py
 
 ---
 
-## 🔧 주요 설정값 (Configuration)
+## 주요 설정값 (Configuration)
 
 `main.py` 파일의 `session_update` 딕셔너리에서 AI의 행동과 관련된 주요 파라미터를 조정할 수 있습니다.
 
@@ -158,6 +158,6 @@ python main.py
 
 ---
 
-## 📄 라이선스 (License)
+## 라이선스 (License)
 
 이 프로젝트는 [MIT 라이선스](LICENSE)를 따릅니다.

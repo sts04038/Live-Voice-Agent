@@ -9,6 +9,7 @@ import logging
 import threading
 import numpy as np
 import sounddevice as sd
+import keyboard  # pip install keyboard
 
 from collections import deque
 from dotenv import load_dotenv
@@ -32,17 +33,9 @@ async def main() -> None:
     api_version = os.environ.get("AZURE_VOICE_LIVE_API_VERSION") or "2025-05-01-preview"
     api_key = os.environ.get("AZURE_VOICE_LIVE_API_KEY") or "your_api_key"
 
-    # # msal 로그인 방식
-    # # For the recommended keyless authentication, get and
-    # # use the Microsoft Entra token instead of api_key:
-    # scopes = "https://cognitiveservices.azure.com/.default"
-    # credential = DefaultAzureCredential()
-    # token = await credential.get_token(scopes)
-
     client = AsyncAzureVoiceLive(
         azure_endpoint = endpoint,
         api_version = api_version,
-        # token = token.token, # Msal 로그인 방식
         api_key = api_key,
     )
     async with client.connect(model = model) as connection:
@@ -54,12 +47,12 @@ async def main() -> None:
                     "type": "azure_semantic_vad",
                     "threshold": 0.5,
                     "prefix_padding_ms": 300,
-                    "silence_duration_ms": 2000, # 2초 침묵 -> ai 대화 끝으로 판단
+                    "silence_duration_ms": 500,  # 더 빠른 응답을 위해 500ms로 단축
                     "remove_filler_words": False,
                     "end_of_utterance_detection": {
                         "model": "semantic_detection_v1",
                         "threshold": 0.01,
-                        "timeout": 2,
+                        "timeout": 0.5,  # 더 빠른 응답을 위해 0.5로 단축
                     },
                 },
                 "input_audio_noise_reduction": {
@@ -79,11 +72,15 @@ async def main() -> None:
         await connection.send(json.dumps(session_update))
         print("Session created: ", json.dumps(session_update))
 
-        send_task = asyncio.create_task(listen_and_send_audio(connection))
+        # 무음 전송 방식 사용
+        send_task = asyncio.create_task(listen_and_send_audio_ptt_with_silence(connection))
         receive_task = asyncio.create_task(receive_audio_and_playback(connection))
         keyboard_task = asyncio.create_task(read_keyboard_and_quit())
 
         print("Starting the chat ...")
+        print("Hold SPACE to talk, release to stop talking")
+        print("Press 'q' and Enter to quit")
+        
         await asyncio.wait([send_task, receive_task, keyboard_task], return_when=asyncio.FIRST_COMPLETED)
 
         send_task.cancel()
@@ -178,6 +175,7 @@ class AudioPlayerAsync:
             blocksize=2400,
         )
         self.playing = False
+        self.is_speaking = False  # AI가 말하고 있는지 추적
 
     def callback(self, outdata, frames, time, status):
         if status:
@@ -190,6 +188,10 @@ class AudioPlayerAsync:
                 data = np.concatenate((data, item[:frames_needed]))
                 if len(item) > frames_needed:
                     self.queue.appendleft(item[frames_needed:])
+            
+            # 재생할 데이터가 있으면 AI가 말하고 있는 것으로 표시
+            self.is_speaking = len(data) > 0 and np.any(data != 0)
+            
             if len(data) < frames:
                 data = np.concatenate((data, np.zeros(frames - len(data), dtype=np.int16)))
         outdata[:] = data.reshape(-1, 1)
@@ -210,6 +212,7 @@ class AudioPlayerAsync:
         with self.lock:
             self.queue.clear()
         self.playing = False
+        self.is_speaking = False
         self.stream.stop()
 
     def terminate(self):
@@ -218,20 +221,74 @@ class AudioPlayerAsync:
         self.stream.stop()
         self.stream.close()
 
-async def listen_and_send_audio(connection: AsyncVoiceLiveConnection) -> None:
-    logger.info("Starting audio stream ...")
-
+# Push-to-Talk 방식의 오디오 전송 (무음 전송 버전)
+async def listen_and_send_audio_ptt_with_silence(connection: AsyncVoiceLiveConnection) -> None:
+    logger.info("Starting audio stream with Push-to-Talk and silence padding...")
+    
     stream = sd.InputStream(channels=1, samplerate=AUDIO_SAMPLE_RATE, dtype="int16")
+    stream.start()
+    
     try:
-        stream.start()
         read_size = int(AUDIO_SAMPLE_RATE * 0.02)
+        is_talking = False
+        silence_frames_to_send = 0
+        silence_duration = int(AUDIO_SAMPLE_RATE * 0.8)  # 0.8초 무음 (빠른 응답을 위해 단축)
+        
         while True:
+            # 스페이스바가 눌렸는지 확인
+            space_pressed = keyboard.is_pressed('space')
+            
+            if space_pressed and not is_talking:
+                is_talking = True
+                print("\n🎤 Recording... (Release SPACE to stop)")
+                
+                # AI 응답 중단 요청
+                cancel_message = {
+                    "type": "response.cancel",
+                    "event_id": ""
+                }
+                await connection.send(json.dumps(cancel_message))
+                
+                # 오디오 버퍼 클리어
+                clear_message = {
+                    "type": "input_audio_buffer.clear",
+                    "event_id": ""
+                }
+                await connection.send(json.dumps(clear_message))
+                
+            elif not space_pressed and is_talking:
+                is_talking = False
+                silence_frames_to_send = silence_duration
+                print("🔇 Recording stopped, sending silence...")
+            
             if stream.read_available >= read_size:
                 data, _ = stream.read(read_size)
-                audio = base64.b64encode(data).decode("utf-8")
-                param = {"type": "input_audio_buffer.append", "audio": audio, "event_id": ""}
-                data_json = json.dumps(param)
-                await connection.send(data_json)
+                
+                # 스페이스바가 눌려있을 때 실제 오디오 전송
+                if is_talking:
+                    audio = base64.b64encode(data).decode("utf-8")
+                    param = {"type": "input_audio_buffer.append", "audio": audio, "event_id": ""}
+                    await connection.send(json.dumps(param))
+                
+                # 스페이스바를 놓은 후 무음 전송
+                elif silence_frames_to_send > 0:
+                    silence_data = np.zeros(read_size, dtype=np.int16)
+                    audio = base64.b64encode(silence_data.tobytes()).decode("utf-8")
+                    param = {"type": "input_audio_buffer.append", "audio": audio, "event_id": ""}
+                    await connection.send(json.dumps(param))
+                    silence_frames_to_send -= read_size
+                    
+                    if silence_frames_to_send <= 0:
+                        # 무음 전송 완료 후 커밋
+                        commit_message = {
+                            "type": "input_audio_buffer.commit",
+                            "event_id": ""
+                        }
+                        await connection.send(json.dumps(commit_message))
+                        print("💬 Silence sent, waiting for AI response...")
+            
+            await asyncio.sleep(0.01)
+            
     except Exception as e:
         logger.error(f"Audio stream interrupted. {e}")
     finally:
@@ -248,20 +305,24 @@ async def receive_audio_and_playback(connection: AsyncVoiceLiveConnection) -> No
         while True:
             async for raw_event in connection:
                 event = json.loads(raw_event)
-                print(f"Received event:", {event.get("type")})
+                event_type = event.get("type")
+                
+                # 디버깅을 위해 이벤트 타입만 간단히 출력
+                if event_type not in ["response.audio.delta", "input_audio_buffer.speech_started"]:
+                    print(f"Event: {event_type}")
 
-                if event.get("type") == "session.created":
+                if event_type == "session.created":
                     session = event.get("session")
                     logger.info(f"Session created: {session.get('id')}")
 
-                elif event.get("type") == "response.audio.delta":
+                elif event_type == "response.audio.delta":
                     if event.get("item_id") != last_audio_item_id:
                         last_audio_item_id = event.get("item_id")
 
                     bytes_data = base64.b64decode(event.get("delta", ""))
                     audio_player.add_data(bytes_data)
 
-                elif event.get("type") == "error":
+                elif event_type == "error":
                     error_details = event.get("error", {})
                     error_type = error_details.get("type", "Unknown")
                     error_code = error_details.get("code", "Unknown")

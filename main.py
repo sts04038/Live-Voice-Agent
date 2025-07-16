@@ -9,13 +9,9 @@ import logging
 import threading
 import numpy as np
 import sounddevice as sd
-import keyboard  # pip install keyboard
-
 from collections import deque
 from dotenv import load_dotenv
-from azure.identity import DefaultAzureCredential
-from azure.core.credentials_async import AsyncTokenCredential
-from azure.identity.aio import DefaultAzureCredential, get_bearer_token_provider
+from azure.identity.aio import DefaultAzureCredential
 from typing import Dict, Union, Literal, Set
 from typing_extensions import AsyncIterator, TypedDict, Required
 from websockets.asyncio.client import connect as ws_connect
@@ -23,22 +19,42 @@ from websockets.asyncio.client import ClientConnection as AsyncWebsocket
 from websockets.asyncio.client import HeadersLike
 from websockets.typing import Data
 from websockets.exceptions import WebSocketException
+from pynput import keyboard  # pip install pynput (macOS sudo 불필요)
 
-# This is the main function to run the Voice Live API client.
+# Global flag for talking state
+is_talking = False
 
+def on_press(key):
+    global is_talking
+    if key == keyboard.Key.space and not is_talking:
+        is_talking = True
+        print("\n🎤 Recording... (Release SPACE to stop)")
+
+def on_release(key):
+    global is_talking
+    if key == keyboard.Key.space:
+        is_talking = False
+        print("🔇 Recording stopped, sending silence...")
+
+# Start pynput listener in a separate thread
+def start_key_listener():
+    listener = keyboard.Listener(on_press=on_press, on_release=on_release)
+    listener.start()
+
+# Main function
 async def main() -> None:
-    # Set environment variables or edit the corresponding values here.
+    # Environment variables
     endpoint = os.environ.get("AZURE_VOICE_LIVE_ENDPOINT") or "https://your-endpoint.azure.com/"
     model = os.environ.get("VOICE_LIVE_MODEL") or "gpt-4o"
     api_version = os.environ.get("AZURE_VOICE_LIVE_API_VERSION") or "2025-05-01-preview"
     api_key = os.environ.get("AZURE_VOICE_LIVE_API_KEY") or "your_api_key"
 
     client = AsyncAzureVoiceLive(
-        azure_endpoint = endpoint,
-        api_version = api_version,
-        api_key = api_key,
+        azure_endpoint=endpoint,
+        api_version=api_version,
+        api_key=api_key,
     )
-    async with client.connect(model = model) as connection:
+    async with client.connect(model=model) as connection:
         session_update = {
             "type": "session.update",
             "session": {
@@ -47,12 +63,12 @@ async def main() -> None:
                     "type": "azure_semantic_vad",
                     "threshold": 0.5,
                     "prefix_padding_ms": 300,
-                    "silence_duration_ms": 500,  # 더 빠른 응답을 위해 500ms로 단축
+                    "silence_duration_ms": 500,
                     "remove_filler_words": False,
                     "end_of_utterance_detection": {
                         "model": "semantic_detection_v1",
                         "threshold": 0.01,
-                        "timeout": 0.5,  # 더 빠른 응답을 위해 0.5로 단축
+                        "timeout": 0.5,
                     },
                 },
                 "input_audio_noise_reduction": {
@@ -72,7 +88,12 @@ async def main() -> None:
         await connection.send(json.dumps(session_update))
         print("Session created: ", json.dumps(session_update))
 
-        # 무음 전송 방식 사용
+        # Start key listener in thread (non-blocking, macOS compatible)
+        key_thread = threading.Thread(target=start_key_listener)
+        key_thread.daemon = True
+        key_thread.start()
+
+        # Tasks
         send_task = asyncio.create_task(listen_and_send_audio_ptt_with_silence(connection))
         receive_task = asyncio.create_task(receive_audio_and_playback(connection))
         keyboard_task = asyncio.create_task(read_keyboard_and_quit())
@@ -86,8 +107,6 @@ async def main() -> None:
         send_task.cancel()
         receive_task.cancel()
         print("Chat done.")
-
-# --- End of Main Function ---
 
 logger = logging.getLogger(__name__)
 AUDIO_SAMPLE_RATE = 24000
@@ -116,8 +135,8 @@ class AsyncVoiceLiveConnection:
     close = __aexit__
 
     async def __aiter__(self) -> AsyncIterator[Data]:
-         async for data in self._connection:
-             yield data
+        async for data in self._connection:
+            yield data
 
     async def recv(self) -> Data:
         return await self._connection.recv()
@@ -137,7 +156,6 @@ class AsyncAzureVoiceLive:
         token: str | None = None,
         api_key: str | None = None,
     ) -> None:
-
         self._azure_endpoint = azure_endpoint
         self._api_version = api_version
         self._token = token
@@ -221,7 +239,6 @@ class AudioPlayerAsync:
         self.stream.stop()
         self.stream.close()
 
-# Push-to-Talk 방식의 오디오 전송 (무음 전송 버전)
 async def listen_and_send_audio_ptt_with_silence(connection: AsyncVoiceLiveConnection) -> None:
     logger.info("Starting audio stream with Push-to-Talk and silence padding...")
     
@@ -230,62 +247,47 @@ async def listen_and_send_audio_ptt_with_silence(connection: AsyncVoiceLiveConne
     
     try:
         read_size = int(AUDIO_SAMPLE_RATE * 0.02)
-        is_talking = False
         silence_frames_to_send = 0
-        silence_duration = int(AUDIO_SAMPLE_RATE * 0.8)  # 0.8초 무음 (빠른 응답을 위해 단축)
+        silence_duration = int(AUDIO_SAMPLE_RATE * 0.8)  # 0.8초 무음
         
         while True:
-            # 스페이스바가 눌렸는지 확인
-            space_pressed = keyboard.is_pressed('space')
-            
-            if space_pressed and not is_talking:
-                is_talking = True
-                print("\n🎤 Recording... (Release SPACE to stop)")
-                
-                # AI 응답 중단 요청
+            if is_talking and silence_frames_to_send == 0:
+                # 오디오 버퍼 클리어 등
                 cancel_message = {
                     "type": "response.cancel",
                     "event_id": ""
                 }
                 await connection.send(json.dumps(cancel_message))
                 
-                # 오디오 버퍼 클리어
                 clear_message = {
                     "type": "input_audio_buffer.clear",
                     "event_id": ""
                 }
                 await connection.send(json.dumps(clear_message))
+            
+            if not is_talking and silence_frames_to_send > 0:
+                # 무음 전송
+                silence_data = np.zeros(read_size, dtype=np.int16)
+                audio = base64.b64encode(silence_data.tobytes()).decode("utf-8")
+                param = {"type": "input_audio_buffer.append", "audio": audio, "event_id": ""}
+                await connection.send(json.dumps(param))
+                silence_frames_to_send -= read_size
                 
-            elif not space_pressed and is_talking:
-                is_talking = False
-                silence_frames_to_send = silence_duration
-                print("🔇 Recording stopped, sending silence...")
+                if silence_frames_to_send <= 0:
+                    commit_message = {
+                        "type": "input_audio_buffer.commit",
+                        "event_id": ""
+                    }
+                    await connection.send(json.dumps(commit_message))
+                    print("💬 Silence sent, waiting for AI response...")
             
             if stream.read_available >= read_size:
                 data, _ = stream.read(read_size)
                 
-                # 스페이스바가 눌려있을 때 실제 오디오 전송
                 if is_talking:
                     audio = base64.b64encode(data).decode("utf-8")
                     param = {"type": "input_audio_buffer.append", "audio": audio, "event_id": ""}
                     await connection.send(json.dumps(param))
-                
-                # 스페이스바를 놓은 후 무음 전송
-                elif silence_frames_to_send > 0:
-                    silence_data = np.zeros(read_size, dtype=np.int16)
-                    audio = base64.b64encode(silence_data.tobytes()).decode("utf-8")
-                    param = {"type": "input_audio_buffer.append", "audio": audio, "event_id": ""}
-                    await connection.send(json.dumps(param))
-                    silence_frames_to_send -= read_size
-                    
-                    if silence_frames_to_send <= 0:
-                        # 무음 전송 완료 후 커밋
-                        commit_message = {
-                            "type": "input_audio_buffer.commit",
-                            "event_id": ""
-                        }
-                        await connection.send(json.dumps(commit_message))
-                        print("💬 Silence sent, waiting for AI response...")
             
             await asyncio.sleep(0.01)
             

@@ -13,3 +13,4 @@ typing_extensions==4.13.2
 urllib3==2.4.0
 websockets==15.0.1
 keyboard==0.13.5
+pynput==1.7.7

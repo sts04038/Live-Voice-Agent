@@ -1,0 +1,16 @@
+venv/
+.env
+voicelive.log
+__pycache__/ 
+
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.tmp
+*.log

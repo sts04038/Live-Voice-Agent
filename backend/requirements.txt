@@ -14,3 +14,9 @@ urllib3==2.4.0
 websockets==15.0.1
 keyboard==0.13.5
 pynput==1.7.7
+
+# FastAPI 웹 서버 구동을 위한 패키지
+fastapi==0.116.1
+uvicorn[standard]==0.35.0
+
+

@@ -134,10 +134,31 @@ async def websocket_endpoint(websocket: WebSocket):
             session_update = {
                 "type": "session.update",
                 "session": {
-                    "instructions": "You are a helpful AI assistant.",
-                    "turn_detection": {"type": "azure_semantic_vad", "silence_duration_ms": 1500},
-                    "voice": {"name": "en-US-AvaNeural"},
-                }
+                    "instructions": "You are a helpful AI assistant responding in natural, engaging language.",
+                    "turn_detection": {
+                        "type": "azure_semantic_vad",
+                        "threshold": 0.5, # 발화 종료 판단 민감도
+                        "prefix_padding_ms": 300,
+                        "silence_duration_ms": 1500,
+                        "remove_filler_words": False,
+                        "end_of_utterance_detection": {
+                            "model": "semantic_detection_v1",
+                            "threshold": 0.01,
+                            "timeout": 0.5,
+                        },
+                    },
+                    "input_audio_noise_reduction": {
+                        "type": "azure_deep_noise_suppression"
+                    },
+                    "input_audio_echo_cancellation": {
+                        "type": "server_echo_cancellation"
+                    },
+                    "voice": {
+                        "name": "en-US-Ava:DragonHDLatestNeural", 
+                        "temperature": 0.8,
+                    },
+                },
+                "event_id": "" # event_id는 보통 비워둡니다.
             }
             await azure_connection.send(json.dumps(session_update))
             logger.info("Sent session update to Azure. Waiting for session.created confirmation...")

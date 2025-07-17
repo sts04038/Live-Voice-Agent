@@ -135,7 +135,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 "type": "session.update",
                 "session": {
                     "instructions": "You are a helpful AI assistant.",
-                    "turn_detection": {"type": "azure_semantic_vad", "silence_duration_ms": 500},
+                    "turn_detection": {"type": "azure_semantic_vad", "silence_duration_ms": 1500},
                     "voice": {"name": "en-US-AvaNeural"},
                 }
             }

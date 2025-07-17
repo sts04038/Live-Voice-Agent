@@ -173,7 +173,26 @@ function App() {
 
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
+
+            // AI가 말하기 시작했다는 신호
+            if (data.type === 'response.audio.started') {
+                setIsAISpeaking(true);
+                return; // 다른 로직 실행 방지
+            }
+
+            // AI 말이 끝났다는 신호
+            if (data.type === 'response.audio.done') {
+                // isPlayingRef.current가 false가 된 후에 setIsAISpeaking(false)를 호출해야
+                // 자연스럽습니다. onended 콜백에서 처리하므로 여기서는 비워둡니다.
+                // 또는 약간의 딜레이 후 상태를 변경할 수 있습니다.
+                // setTimeout(() => setIsAISpeaking(false), 100);
+                return;
+            }
+
             if (data.type === 'audio' && data.audio) {
+                // AI가 말하고 있다는 것을 명시적으로 설정
+                if (!isAISpeaking) setIsAISpeaking(true);
+
                 const audioData = atob(data.audio);
                 const audioArray = new Uint8Array(audioData.length);
                 for (let i = 0; i < audioData.length; i++) {
@@ -183,8 +202,6 @@ function App() {
                 if (!isPlayingRef.current) {
                     playAudioQueue();
                 }
-            } else if (data.type === 'response.audio.started') {
-                // audio.delta가 들어올 때 isAISpeaking을 true로 설정하는 것이 더 정확할 수 있음
             }
         };
 

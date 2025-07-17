@@ -94,14 +94,16 @@ async def azure_to_react(react_ws: WebSocket, azure_ws: AsyncVoiceLiveConnection
     try:
         async for raw_event in azure_ws:
             event = json.loads(raw_event)
-            # 오디오 데이터 외의 로그는 터미널에 출력
-            if event.get("type") != "response.audio.delta":
-                 logger.info(f"⬅️ Received from Azure: {event}")
+            event_type = event.get("type")
 
-            # base64 인코딩된 오디오 데이터는 'audio' 키에 담아 React로 전달
-            if event.get("type") == "response.audio.delta":
+            # 오디오 데이터 외의 로그는 터미널에 출력
+            if event_type != "response.audio.delta":
+                 logger.info(f"⬅️ Received from Azure: {event}")
+            
+            # 클라이언트에 필요한 이벤트만 전달
+            if event_type == "response.audio.delta":
                 await react_ws.send_text(json.dumps({"type": "audio", "audio": event.get("delta")}))
-            else:
+            elif event_type in ["response.audio.started", "response.audio.done"]:
                 await react_ws.send_text(json.dumps(event))
 
     except WebSocketException as e:

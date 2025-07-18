@@ -67,7 +67,10 @@ function App() {
             processor.connect(audioContextRef.current.destination);
         } catch (error) {
             console.error('🔴 Error starting recording:', error);
-            setMessages(prev => [...prev, { text: `Failed to access microphone: ${error.message}`, sender: 'system' }]);
+            setMessages((prev) => [
+                ...prev,
+                { text: `Failed to access microphone: ${error.message}`, sender: 'system' },
+            ]);
             setIsRecording(false);
         }
     }, [isConnected, sendAudioData]);
@@ -104,11 +107,11 @@ function App() {
     // 녹음 토글
     const toggleRecording = useCallback(() => {
         if (!isConnected) {
-            setMessages(prev => [...prev, { text: 'Please connect to server first', sender: 'system' }]);
+            setMessages((prev) => [...prev, { text: 'Please connect to server first', sender: 'system' }]);
             return;
         }
         if (isAISpeaking) {
-            setMessages(prev => [...prev, { text: 'Cannot record while AI is speaking', sender: 'system' }]);
+            setMessages((prev) => [...prev, { text: 'Cannot record while AI is speaking', sender: 'system' }]);
             return;
         }
         !isRecording ? startRecording() : stopRecording();
@@ -171,7 +174,7 @@ function App() {
     const connect = useCallback(() => {
         if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) return;
         setConnectionStatus('Connecting...');
-        const ws = new WebSocket('ws://localhost:8000/ws');
+        const ws = new WebSocket('wss://live-voice-agent-backend-935733163938.asia-northeast3.run.app/ws');
         wsRef.current = ws;
 
         ws.onopen = () => {
@@ -186,7 +189,7 @@ function App() {
             // AI가 말하기 시작했다는 신호
             if (data.type === 'response.audio.started') {
                 setIsAISpeaking(true);
-                setMessages(prev => [...prev, { text: 'AI is responding...', sender: 'ai' }]);
+                setMessages((prev) => [...prev, { text: 'AI is responding...', sender: 'ai' }]);
                 return;
             }
 
@@ -213,13 +216,13 @@ function App() {
 
             // 텍스트 메시지 처리 (서버에서 전송하는 경우)
             if (data.type === 'message') {
-                setMessages(prev => [...prev, { text: data.text, sender: 'ai' }]);
+                setMessages((prev) => [...prev, { text: data.text, sender: 'ai' }]);
             }
 
             // 에러 메시지 처리
             if (data.type === 'error') {
                 console.error('🔴 Server error:', data.message);
-                setMessages(prev => [...prev, { text: `Error: ${data.message}`, sender: 'system' }]);
+                setMessages((prev) => [...prev, { text: `Error: ${data.message}`, sender: 'system' }]);
             }
         };
 
@@ -284,22 +287,22 @@ function App() {
                 <h1 className="text-4xl font-bold mb-8 text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
                     Live Voice Agent
                 </h1>
-                
+
                 {/* 연결 상태 */}
                 <div className="bg-gray-800 rounded-lg p-6 mb-6 shadow-xl">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
-                            <div className={`w-3 h-3 rounded-full ${
-                                isConnected ? 'bg-green-500' : 'bg-red-500'
-                            } animate-pulse`} />
+                            <div
+                                className={`w-3 h-3 rounded-full ${
+                                    isConnected ? 'bg-green-500' : 'bg-red-500'
+                                } animate-pulse`}
+                            />
                             <span className="text-lg">{connectionStatus}</span>
                         </div>
                         <button
                             onClick={isConnected ? disconnect : connect}
                             className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 ${
-                                isConnected 
-                                    ? 'bg-red-600 hover:bg-red-700' 
-                                    : 'bg-blue-600 hover:bg-blue-700'
+                                isConnected ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'
                             }`}
                         >
                             {isConnected ? <PowerOff size={20} /> : <Power size={20} />}
@@ -316,17 +319,17 @@ function App() {
                             onClick={toggleRecording}
                             disabled={!isConnected || isAISpeaking}
                             className={`w-32 h-32 rounded-full transition-all duration-300 flex items-center justify-center relative ${
-                                isRecording 
-                                    ? 'bg-red-600 hover:bg-red-700 animate-pulse shadow-lg shadow-red-500/50' 
+                                isRecording
+                                    ? 'bg-red-600 hover:bg-red-700 animate-pulse shadow-lg shadow-red-500/50'
                                     : 'bg-gray-700 hover:bg-gray-600'
-                            } ${(!isConnected || isAISpeaking) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            } ${!isConnected || isAISpeaking ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                             {isRecording ? <Mic size={48} /> : <MicOff size={48} />}
                             {isRecording && (
                                 <div className="absolute inset-0 rounded-full border-4 border-red-400 animate-ping" />
                             )}
                         </button>
-                        
+
                         <div className="text-center">
                             <p className="text-lg font-medium">
                                 {isRecording ? 'Recording... Release to send' : 'Hold SPACE or click to talk'}
@@ -352,8 +355,8 @@ function App() {
                                 <div
                                     key={idx}
                                     className={`p-3 rounded-lg ${
-                                        msg.sender === 'user' 
-                                            ? 'bg-blue-600 ml-auto max-w-xs' 
+                                        msg.sender === 'user'
+                                            ? 'bg-blue-600 ml-auto max-w-xs'
                                             : msg.sender === 'ai'
                                             ? 'bg-gray-700 mr-auto max-w-xs'
                                             : 'bg-yellow-600 mx-auto max-w-md text-center'

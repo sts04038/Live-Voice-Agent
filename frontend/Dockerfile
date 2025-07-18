@@ -25,6 +25,9 @@ FROM nginx:stable-alpine
 # '조립' 단계(builder)의 결과물(/app/dist 폴더)을 웹서버의 전시 공간(/usr/share/nginx/html)으로 가져옵니다.
 COPY --from=builder /app/dist /usr/share/nginx/html
 
+# 우리가 만든 Nginx 설정 파일을 컨테이너 안의 설정 폴더로 복사합니다.
+COPY ./nginx/default.conf /etc/nginx/conf.d/default.conf
+
 # 80번 포트를 외부와 연결할 수 있도록 개방합니다.
 EXPOSE 80
 

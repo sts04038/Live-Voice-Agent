@@ -20,5 +20,5 @@ RUN apk add --no-cache gettext
 
 EXPOSE 8080
 
-# 이제 envsubst 명령어가 존재하므로, 이 명령어가 정상적으로 실행됩니다.
-CMD /bin/sh -c "envsubst < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
+# envsubst 뒤에 '$PORT'를 추가하여, 오직 이 환경 변수만 치환하도록 명확히 지정합니다.
+CMD /bin/sh -c "envsubst '$PORT' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"

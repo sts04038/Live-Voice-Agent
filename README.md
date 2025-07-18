@@ -27,13 +27,13 @@
 
 이 프로젝트는 React 프론트엔드, FastAPI 백엔드, 그리고 Azure Voice Live API가 WebSocket으로 통신하는 3-Tier 아키텍처를 따릅니다.
 
-```
-[React Frontend in Browser] <─ (1. WebSocket) ─> [FastAPI Backend Server] <─ (3. WebSocket) ─> [Azure Voice Live API]
-        │ ▲                                                  │ ▲                                        │ ▲
-(User Mic/Speaker) │ │                                          (Audio Stream Proxy) │ │                                (AI Processing) │ │
-        ▼ │                                                  ▼ │                                        ▼ │
-   [User Interface]  <─ (2. Audio/Text Stream) <─ [FastAPI Backend Server] <─ (4. Audio/Text Stream) <─ [Azure OpenAI (GPT-4o)]
-```
+### 1. 사용자 요청 흐름 (User → AI)
+
+**[🎤 React Frontend]** → `Audio Stream` → **[⚙️ FastAPI Server]** → `Audio Stream` → **[☁️ Azure STT]** → `Text` → **[🤖 Azure OpenAI]**
+
+### 2. AI 응답 흐름 (AI → User)
+
+**[🤖 Azure OpenAI]** → `Text` → **[☁️ Azure TTS]** → `Audio & Text Stream` → **[⚙️ FastAPI Server]** → `Audio & Text Stream` → **[🎧 React Frontend]**
 
 1.  **React ↔ FastAPI**: 사용자가 마이크에 말하면, React는 오디오 데이터를 캡처하여 FastAPI 서버로 WebSocket을 통해 전송합니다. FastAPI는 AI의 음성/텍스트 응답을 다시 React로 전송합니다.
 2.  **FastAPI (Proxy)**: FastAPI 서버는 React 클라이언트와 Azure API 사이의 중계자(Proxy) 역할을 합니다.

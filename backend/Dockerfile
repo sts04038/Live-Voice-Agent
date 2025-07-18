@@ -21,4 +21,4 @@ COPY . .
 # 6. 컨테이너 실행 명령어: 이 컨테이너가 시작될 때, uvicorn 서버를 실행하라는 명령어입니다.
 # '--host 0.0.0.0'는 컨테이너 외부에서 접속을 허용하겠다는 의미입니다.
 # Cloud Run이 PORT 환경 변수로 지정해주는 포트를 사용하도록 변경합니다.
-CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "$PORT"]
+CMD uvicorn server:app --host 0.0.0.0 --port $PORT

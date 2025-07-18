@@ -1,73 +1,62 @@
-# Live-Voice-Agent: 실시간 음성 AI 상담원 (Real-time Voice AI Agent)
+# Live Voice Agent: 실시간 음성 AI 상담원 (Web Application)
 
-[![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![React](https://img.shields.io/badge/React-18+-61DAFB.svg?logo=react)](https://react.dev/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688.svg?logo=fastapi)](https://fastapi.tiangolo.com/)
+[![Python](https://img.shields.io/badge/Python-3.9+-3776AB.svg?logo=python)](https://www.python.org/)
+[![Azure](https://img.shields.io/badge/Azure-Voice%20Live%20API-0078D4?logo=microsoftazure)](https://azure.microsoft.com/en-us/products/ai-services/ai-speech/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Azure](https://img.shields.io/badge/Azure-Voice%20Live%20API-blue)](https://azure.microsoft.com/en-us/products/ai-services/voice-live-api)
 
-**Azure Voice Live API와 GPT-4o를 기반으로 구축된 실시간 대화형 AI 음성 상담원 프로젝트입니다. 사용자의 음성을 실시간으로 스트리밍하여, 마치 사람과 대화하는 듯한 자연스럽고 지연 시간이 짧은 AI 상담 경험을 제공합니다.**
+**React와 FastAPI, 그리고 Azure Voice Live API를 기반으로 구축된 실시간 대화형 AI 음성 상담원 웹 애플리케이션입니다. 사용자의 음성을 웹 브라우저에서 실시간으로 스트리밍하여, 마치 사람과 대화하는 듯한 자연스럽고 지연 시간이 짧은 AI 상담 경험을 제공합니다.**
 
-이 프로젝트는 단순한 STT-NLU-TTS의 순차적 결합을 넘어, WebSocket을 통해 양방향 오디오 스트림을 처리하여 사용자의 말에 즉각적으로 반응하고, 대화의 미묘한 뉘앙스와 타이밍을 포착하는 고수준의 상호작용을 구현하는 것을 목표로 합니다.
+이 프로젝트는 기존 Python 스크립트에서 발전하여, WebSocket을 통해 클라이언트(React)와 서버(FastAPI) 간의 양방향 오디오 스트림을 중계하고, Azure의 최첨단 음성 AI 기술을 웹 환경에서 완벽하게 구현하는 것을 목표로 합니다.
 
 ---
 
 ## 주요 기능 (Key Features)
 
-* **실시간 양방향 오디오 스트리밍**: WebSocket을 사용하여 사용자의 음성을 실시간으로 서버에 전송하고, AI가 생성한 음성을 지연 없이 스트리밍하여 재생합니다.
-* **지능형 발화 감지 (VAD)**: Azure의 시맨틱 VAD(Voice Activity Detection)를 활용하여 사용자의 발화가 끝나는 시점을 정확하게 감지하고, 2초간의 침묵을 대화 턴(Turn)의 종료로 판단하여 자연스러운 대화 흐름을 만듭니다.
-* **고성능 AI 모델 연동**: `gpt-4o`와 같은 최신 대화형 AI 모델을 활용하여, 정해진 시나리오를 넘어 유연하고 맥락에 맞는 답변을 생성합니다.
-* **고품질 음성 및 노이즈 제거**: Azure의 Standard/Neural 보이스를 사용하여 자연스러운 AI 목소리를 생성하고, 딥러닝 기반 노이즈 제거(DNS) 및 에코 캔슬링(AEC) 기능으로 명확한 음성 인식을 보장합니다.
-* **비동기 처리**: Python의 `asyncio`를 기반으로 오디오 송신, 수신, 키보드 입력 등 여러 작업을 동시에 효율적으로 처리합니다.
+* **웹 기반 실시간 통신**: 브라우저의 마이크를 통해 음성을 입력받고, 스피커로 AI의 음성을 실시간 스트리밍하여 별도의 프로그램 설치 없이 웹에서 바로 사용할 수 있습니다.
+* **지능형 발화 감지 (Semantic VAD)**: Azure의 시맨틱 VAD를 활용하여 사용자의 발화가 끝나는 시점을 의미적으로 감지하고, AI가 즉시 반응하여 자연스러운 대화 흐름을 만듭니다.
+* **다국어 음성 모델**: `en-US-Ava:DragonHDLatestNeural`과 같은 다국어 음성 모델을 통해, 사용자가 어떤 언어로 말하든 AI가 해당 언어로 자연스럽게 응답합니다.
+* **고품질 오디오 처리**: Azure의 딥러닝 기반 소음 제거(DNS) 및 에코 캔슬링(AEC) 기능으로 명확한 음성 인식을 보장합니다.
+* **현대적인 UI/UX**: React와 `lucide-react` 아이콘, `tailwindcss`를 사용하여 직관적이고 미려한 사용자 인터페이스를 제공하며, 채팅 기록과 Push-to-Talk(스페이스바) 기능을 지원합니다.
+* **비동기 서버 아키텍처**: FastAPI와 `asyncio`를 기반으로 여러 클라이언트의 동시 접속과 데이터 스트림을 효율적으로 처리합니다.
 
 ---
 
 ## 아키텍처 (Architecture)
 
-이 프로젝트는 WebSocket 기반의 실시간 통신 모델을 따릅니다.
+이 프로젝트는 React 프론트엔드, FastAPI 백엔드, 그리고 Azure Voice Live API가 WebSocket으로 통신하는 3-Tier 아키텍처를 따릅니다.
 
 ```
-[사용자 마이크]
-      │
-      └─> (1. 오디오 스트림 캡처) ──> [Python 클라이언트 (sounddevice)]
-                                            │
-      ┌─────────────────────────────────────┘
-      │
-(2. Base64 인코딩 및 WebSocket 전송)
-      │
-      ▼
-[Azure Voice Live API Endpoint (wss://...)]
-      │
-      └─> (3. 실시간 STT, VAD, 노이즈 제거) ──> [Azure OpenAI (gpt-4o)]
-                                                     │
-      ┌──────────────────────────────────────────────┘
-      │
-(4. AI 응답 생성 및 실시간 TTS)
-      │
-      ▼
-[Azure Voice Live API Endpoint]
-      │
-      └─> (5. 오디오 스트림 WebSocket 수신) ──> [Python 클라이언트]
-                                                     │
-           ┌─────────────────────────────────────────┘
-           │
-(6. Base64 디코딩 및 오디오 재생)
-           │
-           ▼
-[사용자 스피커]
+[React Frontend in Browser] <─ (1. WebSocket) ─> [FastAPI Backend Server] <─ (3. WebSocket) ─> [Azure Voice Live API]
+        │ ▲                                                  │ ▲                                        │ ▲
+(User Mic/Speaker) │ │                                          (Audio Stream Proxy) │ │                                (AI Processing) │ │
+        ▼ │                                                  ▼ │                                        ▼ │
+   [User Interface]  <─ (2. Audio/Text Stream) <─ [FastAPI Backend Server] <─ (4. Audio/Text Stream) <─ [Azure OpenAI (GPT-4o)]
 ```
+
+1.  **React ↔ FastAPI**: 사용자가 마이크에 말하면, React는 오디오 데이터를 캡처하여 FastAPI 서버로 WebSocket을 통해 전송합니다. FastAPI는 AI의 음성/텍스트 응답을 다시 React로 전송합니다.
+2.  **FastAPI (Proxy)**: FastAPI 서버는 React 클라이언트와 Azure API 사이의 중계자(Proxy) 역할을 합니다.
+3.  **FastAPI ↔ Azure**: FastAPI는 클라이언트로부터 받은 오디오 스트림을 Azure Voice Live API로 전달합니다.
+4.  **Azure → FastAPI**: Azure는 실시간 음성 인식(STT), AI 모델(GPT-4o) 추론, 음성 합성(TTS)을 거쳐 생성된 오디오와 텍스트 스트림을 FastAPI 서버로 다시 보냅니다.
 
 ---
 
 ## 기술 스택 (Technology Stack)
 
-* **언어**: Python 3.9+
+* **Frontend**:
+    * React 18+
+    * Tailwind CSS
+    * Lucide React (Icons)
+* **Backend**:
+    * Python 3.9+
+    * FastAPI
+    * Uvicorn (ASGI Server)
 * **핵심 Azure 서비스**:
     * Azure AI Speech - Voice Live API (Preview)
     * Azure OpenAI Service (GPT-4o)
 * **주요 라이브러리**:
-    * `websockets`: 실시간 양방향 통신
-    * `sounddevice`: 마이크 입력 및 스피커 출력 제어
-    * `numpy`: 오디오 데이터 처리
-    * `asyncio`: 비동기 I/O 처리
+    * `websockets`: FastAPI와 Azure 간의 비동기 WebSocket 통신
     * `python-dotenv`: 환경 변수 관리
 
 ---
@@ -76,85 +65,85 @@
 
 ### 1. 사전 준비 (Prerequisites)
 
-* Python 3.9 이상
+* Python 3.9 이상, Node.js 18 이상
 * Azure 구독 및 **Voice Live API** 접근 권한이 활성화된 Azure AI Speech 리소스
 * Azure OpenAI 리소스 및 `gpt-4o` 모델 배포
-* (Windows/macOS) `PortAudio` 라이브러리 (sounddevice 구동에 필요)
 
 ### 2. 프로젝트 클론 및 설정
 
-다른 패키지와의 충돌을 방지하기 위해 가상환경에서 프로젝트를 설정하는 것을 추천합니다.
-
-#### Windows (PowerShell)
-
-```powershell
-# 1. 프로젝트 코드를 클론합니다.
-git clone [https://github.com/your-username/your-repository-name.git](https://github.com/your-username/your-repository-name.git)
-cd your-repository-name
-
-# 2. Python 가상환경을 생성하고 활성화합니다.
-python -m venv venv
-.\venv\Scripts\Activate.ps1
-
-# 3. pip를 최신 버전으로 업그레이드합니다.
-python -m pip install --upgrade pip
-
-# 4. requirements.txt 파일에 명시된 모든 패키지를 설치합니다.
-pip install -r requirements.txt
-```
-
-#### macOS / Linux (bash)
+프로젝트를 클론한 후, `backend`와 `frontend` 각각의 디렉터리에서 종속성을 설치해야 합니다.
 
 ```bash
 # 1. 프로젝트 코드를 클론합니다.
-git clone [https://github.com/your-username/your-repository-name.git](https://github.com/your-username/your-repository-name.git)
-cd your-repository-name
-
-# 2. Python 가상환경을 생성하고 활성화합니다.
-python3 -m venv venv
-source venv/bin/activate
-
-# 3. pip를 최신 버전으로 업그레이드합니다.
-pip install --upgrade pip
-
-# 4. requirements.txt 파일에 명시된 모든 패키지를 설치합니다.
-pip install -r requirements.txt
+git clone [https://github.com/your-username/Live-Voice-Agent.git](https://github.com/your-username/Live-Voice-Agent.git)
+cd Live-Voice-Agent
 ```
 
-### 3. 환경 변수 설정
+#### Backend (FastAPI) 설정
 
-프로젝트 루트 디렉터리에 `.env` 파일을 생성하고 아래 내용을 자신의 Azure 리소스 정보로 채워 넣습니다.
+```bash
+# 1. backend 디렉터리로 이동
+cd backend
+
+# 2. Python 가상환경 생성 및 활성화
+python3 -m venv venv
+source venv/bin/activate  # macOS/Linux
+# venv\Scripts\activate  # Windows
+
+# 3. 필요한 패키지 설치
+pip install -r requirements.txt
+
+# 4. 환경 변수 설정
+# .env.example 파일을 복사하여 .env 파일을 생성합니다.
+cp .env.example .env
+```
+
+`.env` 파일을 열어 자신의 Azure 리소스 정보를 채워 넣습니다.
 
 ```env
+# backend/.env
+
 # Azure Voice Live API (Speech Service) 정보
-AZURE_VOICE_LIVE_ENDPOINT="YOUR_SPEECH_RESOURCE_ENDPOINT" # 예: [https://koreacentral.api.cognitive.microsoft.com/](https://koreacentral.api.cognitive.microsoft.com/)
+AZURE_VOICE_LIVE_ENDPOINT="YOUR_SPEECH_RESOURCE_ENDPOINT"
 AZURE_VOICE_LIVE_API_KEY="YOUR_SPEECH_RESOURCE_KEY"
 
-# 사용할 AI 모델
-VOICE_LIVE_MODEL="YOUR_AZURE_OPENAI_DEPLOYMENT_NAME" # 예: gpt-4o
+# 사용할 AI 모델 (Azure OpenAI 배포 이름)
+VOICE_LIVE_MODEL="gpt-4o"
 
 # API 버전 (현재 프리뷰 버전)
 AZURE_VOICE_LIVE_API_VERSION="2025-05-01-preview"
 ```
 
-### 4. 애플리케이션 실행
+#### Frontend (React) 설정
 
 ```bash
-python main.py
+# 1. frontend 디렉터리로 이동 (프로젝트 루트에서)
+cd frontend
+
+# 2. 필요한 패키지 설치
+npm install
 ```
 
-실행 후 콘솔에 "Starting the chat ..." 메시지가 나타나면 마이크에 대고 말을 시작할 수 있습니다. 채팅을 종료하려면 콘솔에서 `q`를 누르고 Enter 키를 입력하세요.
+### 3. 애플리케이션 실행
 
----
+두 개의 터미널을 열고 각각 백엔드 서버와 프론트엔드 개발 서버를 실행합니다.
 
-## 주요 설정값 (Configuration)
+**터미널 1: Backend 실행**
 
-`main.py` 파일의 `session_update` 딕셔너리에서 AI의 행동과 관련된 주요 파라미터를 조정할 수 있습니다.
+```bash
+cd backend
+source venv/bin/activate # 가상환경 활성화
+uvicorn server:app --host 0.0.0.0 --port 8000 --reload
+```
 
-* `instructions`: AI의 역할(페르소나)을 정의하는 시스템 프롬프트입니다.
-* `silence_duration_ms`: 사용자의 말이 끝난 후, AI가 응답을 시작하기까지 기다리는 침묵 시간(밀리초)입니다. 이 프로젝트의 핵심 파라미터 중 하나입니다.
-* `voice.name`: AI의 목소리를 지정합니다. [지원되는 음성 목록](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts)에서 선택할 수 있습니다.
-* `voice.temperature`: AI 목소리의 운율(prosody) 변화 정도를 조절합니다. (0.0 ~ 2.0)
+**터미널 2: Frontend 실행**
+
+```bash
+cd frontend
+npm run dev
+```
+
+실행 후, 터미널에 나타나는 주소(`http://localhost:5173` 등)를 웹 브라우저에서 열어 애플리케이션을 사용할 수 있습니다.
 
 ---
 

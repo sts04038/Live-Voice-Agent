@@ -1,0 +1,20 @@
+# docker-compose.yml
+
+# Docker Compose 파일의 버전
+version: '3.8'
+
+# 실행할 서비스(컨테이너)들의 목록
+services:
+  # 백엔드 서비스 정의
+  backend:
+    build: ./backend  # ./backend 폴더의 Dockerfile을 사용해 이미지를 만듭니다.
+    ports:
+      - "8000:8000"  # 내 컴퓨터의 8000번 포트와 컨테이너의 8000번 포트를 연결합니다.
+
+  # 프론트엔드 서비스 정의
+  frontend:
+    build: ./frontend # ./frontend 폴더의 Dockerfile을 사용해 이미지를 만듭니다.
+    ports:
+      - "5173:80"    # 내 컴퓨터의 5173번 포트와 컨테이너의 80번 포트를 연결합니다.
+    depends_on:      # 백엔드 서비스가 먼저 시작된 후에 프론트엔드 서비스가 시작되도록 합니다.
+      - backend

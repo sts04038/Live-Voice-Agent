@@ -26,9 +26,14 @@ logger = logging.getLogger(__name__)
 
 # --- FastAPI 애플리케이션 설정 ---
 app = FastAPI()
+# 배포된 프론트엔드의 주소를 정확하게 명시해줍니다.
+origins = [
+    "https://live-voice-agent-frontend-935733163938.asia-northeast3.run.app",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173"], # React 개발 서버 주소
+    allow_origins=origins, # 등록된 주소만 허용
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -25,20 +25,37 @@
 
 ## 아키텍처 (Architecture)
 
-이 프로젝트는 React 프론트엔드, FastAPI 백엔드, 그리고 Azure Voice Live API가 WebSocket으로 통신하는 3-Tier 아키텍처를 따릅니다.
+이 시스템은 React, FastAPI, Azure가 WebSocket으로 통신하는 3-Tier 구조입니다.
 
-### 1. 사용자 요청 흐름 (User → AI)
+```text
+┌──────────────────────────────────────────┐
+│  👤  Browser (React Frontend)            │
+│  • UI · Mic Capture · Audio Playback     │
+└───────────────┬──────────────────────────┘
+                │ ① User Audio ▼
+                │
+                │ ▲ ④ AI Audio & Text
+┌───────────────┴──────────────────────────┐
+│  ⚙️  FastAPI Server (Proxy)              │
+│  • Bi‑directional WebSocket Relay        │
+└───────────────┬──────────────────────────┘
+                │ ② User Audio ▼
+                │
+                │ ▲ ③ AI Audio & Text
+┌───────────────┴──────────────────────────┐
+│  ☁️  Azure AI Services                   │
+│  • STT → GPT‑4o → TTS Processing         │
+└──────────────────────────────────────────┘
+```
 
-**[🎤 React Frontend]** → `Audio Stream` → **[⚙️ FastAPI Server]** → `Audio Stream` → **[☁️ Azure STT]** → `Text` → **[🤖 Azure OpenAI]**
+1. **React → FastAPI**: 사용자의 음성 스트림이 서버로 전송됩니다.
 
-### 2. AI 응답 흐름 (AI → User)
+2. **FastAPI → Azure**: 서버가 음성 스트림을 Azure로 중계합니다.
 
-**[🤖 Azure OpenAI]** → `Text` → **[☁️ Azure TTS]** → `Audio & Text Stream` → **[⚙️ FastAPI Server]** → `Audio & Text Stream` → **[🎧 React Frontend]**
+3. **Azure → FastAPI**: AI가 생성한 응답 스트림이 서버로 반환됩니다.
 
-1.  **React ↔ FastAPI**: 사용자가 마이크에 말하면, React는 오디오 데이터를 캡처하여 FastAPI 서버로 WebSocket을 통해 전송합니다. FastAPI는 AI의 음성/텍스트 응답을 다시 React로 전송합니다.
-2.  **FastAPI (Proxy)**: FastAPI 서버는 React 클라이언트와 Azure API 사이의 중계자(Proxy) 역할을 합니다.
-3.  **FastAPI ↔ Azure**: FastAPI는 클라이언트로부터 받은 오디오 스트림을 Azure Voice Live API로 전달합니다.
-4.  **Azure → FastAPI**: Azure는 실시간 음성 인식(STT), AI 모델(GPT-4o) 추론, 음성 합성(TTS)을 거쳐 생성된 오디오와 텍스트 스트림을 FastAPI 서버로 다시 보냅니다.
+4. **FastAPI → React**: 서버가 최종 응답 스트림을 브라우저로 전송하여 출력합니다.
+
 
 ---
 
@@ -75,7 +92,7 @@
 
 ```bash
 # 1. 프로젝트 코드를 클론합니다.
-git clone [https://github.com/your-username/Live-Voice-Agent.git](https://github.com/your-username/Live-Voice-Agent.git)
+git clone https://github.com/sts04038/Live-Voice-Agent.git
 cd Live-Voice-Agent
 ```
 

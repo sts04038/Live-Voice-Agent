@@ -345,7 +345,7 @@ function App() {
                 <div className="bg-gray-800 rounded-lg p-6 shadow-xl max-h-96 overflow-y-auto">
                     <h2 className="text-xl font-semibold mb-4">Conversation</h2>
                     {messages.length === 0 ? (
-                        <p className="text-gray-500 text-center">No messages yet. Start talking!</p>
+                        <p className="text-gray-500 text-center">coming soon!</p>
                     ) : (
                         <div className="space-y-3">
                             {messages.map((msg, idx) => (

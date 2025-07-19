@@ -139,12 +139,17 @@ async def websocket_endpoint(websocket: WebSocket):
             session_update = {
                 "type": "session.update",
                 "session": {
-                    "instructions": "You are a helpful AI assistant responding in natural, engaging language.",
+                    "instructions": (
+                        "You are a friendly and helpful AI assistant. "
+                        "Speak in a natural, conversational tone. "
+                        "Keep your responses concise and to the point, ideally under 6 sentences, unless asked for details. "
+                        "Avoid long lists and overly formal language."
+                    ),
                     "turn_detection": {
                         "type": "azure_semantic_vad",
                         "threshold": 0.5, # 발화 종료 판단 민감도
                         "prefix_padding_ms": 300,
-                        "silence_duration_ms": 1500,
+                        "silence_duration_ms": 1200,
                         "remove_filler_words": False,
                         "end_of_utterance_detection": {
                             "model": "semantic_detection_v1",

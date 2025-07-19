@@ -1,166 +1,90 @@
-# Live Voice Agent: 실시간 음성 AI 상담원 (Web Application)
+# Live Voice Agent: 실시간 음성 AI 상담원 (Cloud Native Web App)
 
+[![Docker Build & Push](https://github.com/sts04038/Live-Voice-Agent/actions/workflows/build-and-push.yml/badge.svg)](https://github.com/sts04038/Live-Voice-Agent/actions/workflows/build-and-push.yml)
+[![GCP Cloud Run](https://img.shields.io/badge/Google_Cloud-Run-4285F4?logo=google-cloud)](https://cloud.google.com/run)
 [![React](https://img.shields.io/badge/React-18+-61DAFB.svg?logo=react)](https://react.dev/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688.svg?logo=fastapi)](https://fastapi.tiangolo.com/)
-[![Python](https://img.shields.io/badge/Python-3.9+-3776AB.svg?logo=python)](https://www.python.org/)
-[![Azure](https://img.shields.io/badge/Azure-Voice%20Live%20API-0078D4?logo=microsoftazure)](https://azure.microsoft.com/en-us/products/ai-services/ai-speech/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**React와 FastAPI, 그리고 Azure Voice Live API를 기반으로 구축된 실시간 대화형 AI 음성 상담원 웹 애플리케이션입니다. 사용자의 음성을 웹 브라우저에서 실시간으로 스트리밍하여, 마치 사람과 대화하는 듯한 자연스럽고 지연 시간이 짧은 AI 상담 경험을 제공합니다.**
+**React, FastAPI, Azure Voice Live API를 기반으로 구축하고, Docker와 GitHub Actions를 통해 Google Cloud Run에 자동으로 배포되는 실시간 AI 음성 상담원 웹 애플리케이션입니다.**
 
-이 프로젝트는 기존 Python 스크립트에서 발전하여, WebSocket을 통해 클라이언트(React)와 서버(FastAPI) 간의 양방향 오디오 스트림을 중계하고, Azure의 최첨단 음성 AI 기술을 웹 환경에서 완벽하게 구현하는 것을 목표로 합니다.
+이 프로젝트는 웹 애플리케이션 개발을 넘어, **컨테이너화(Docker)**, **CI/CD 파이프라인(GitHub Actions)**, **클라우드 배포(GCP)**를 포함하는 현대적인 DevOps 워크플로우를 적용하여 안정적이고 확장 가능한 클라우드 네이티브 서비스를 구축하는 것을 목표로 합니다.
 
 ---
 
 ## 주요 기능 (Key Features)
 
-* **웹 기반 실시간 통신**: 브라우저의 마이크를 통해 음성을 입력받고, 스피커로 AI의 음성을 실시간 스트리밍하여 별도의 프로그램 설치 없이 웹에서 바로 사용할 수 있습니다.
-* **지능형 발화 감지 (Semantic VAD)**: Azure의 시맨틱 VAD를 활용하여 사용자의 발화가 끝나는 시점을 의미적으로 감지하고, AI가 즉시 반응하여 자연스러운 대화 흐름을 만듭니다.
-* **다국어 음성 모델**: `en-US-Ava:DragonHDLatestNeural`과 같은 다국어 음성 모델을 통해, 사용자가 어떤 언어로 말하든 AI가 해당 언어로 자연스럽게 응답합니다.
-* **고품질 오디오 처리**: Azure의 딥러닝 기반 소음 제거(DNS) 및 에코 캔슬링(AEC) 기능으로 명확한 음성 인식을 보장합니다.
-* **현대적인 UI/UX**: React와 `lucide-react` 아이콘, `tailwindcss`를 사용하여 직관적이고 미려한 사용자 인터페이스를 제공하며, 채팅 기록과 Push-to-Talk(스페이스바) 기능을 지원합니다.
-* **비동기 서버 아키텍처**: FastAPI와 `asyncio`를 기반으로 여러 클라이언트의 동시 접속과 데이터 스트림을 효율적으로 처리합니다.
+-   **웹 기반 실시간 통신**: 브라우저의 마이크를 통해 음성을 입력받고, 스피커로 AI의 음성을 실시간 스트리밍합니다.
+-   **지능형 발화 감지 (Semantic VAD)**: Azure의 시맨틱 VAD를 활용하여 사용자의 발화 종료 시점을 정확하게 감지하고 AI가 즉각적으로 반응합니다.
+-   **다국어 음성 모델**: `en-US-Ava:DragonHDLatestNeural`과 같은 다국어 음성 모델을 통해 사용자의 언어에 맞춰 자연스럽게 응답합니다.
+-   **현대적인 UI/UX**: React와 Tailwind CSS를 사용하여 채팅 기록, Push-to-Talk(스페이스바) 등 직관적인 인터페이스를 제공합니다.
+-   **클라우드 네이티브 아키텍처**:
+    -   **컨테이너화**: 프론트엔드와 백엔드를 Docker 컨테이너로 패키징하여 어떤 환경에서든 일관된 실행을 보장합니다.
+    -   **CI/CD 자동화**: GitHub Actions를 통해 코드 Push 시 자동으로 Docker 이미지를 빌드하고 Google Cloud에 배포합니다.
+    -   **서버리스 배포**: Google Cloud Run을 통해 트래픽에 따라 자동으로 확장/축소되는 서버리스 환경에서 서비스를 운영합니다.
 
 ---
 
 ## 아키텍처 (Architecture)
 
-이 시스템은 React, FastAPI, Azure가 WebSocket으로 통신하는 3-Tier 구조입니다.
+이 시스템은 CI/CD 파이프라인을 통해 Google Cloud Run에 배포되는 3-Tier 구조를 따릅니다.
 
-```text
-┌──────────────────────────────────────────┐
-│  👤  Browser (React Frontend)            │
-│  • UI · Mic Capture · Audio Playback     │
-└───────────────┬──────────────────────────┘
-                │ ① User Audio ▼
-                │
-                │ ▲ ④ AI Audio & Text
-┌───────────────┴──────────────────────────┐
-│  ⚙️  FastAPI Server (Proxy)              │
-│  • Bi‑directional WebSocket Relay        │
-└───────────────┬──────────────────────────┘
-                │ ② User Audio ▼
-                │
-                │ ▲ ③ AI Audio & Text
-┌───────────────┴──────────────────────────┐
-│  ☁️  Azure AI Services                   │
-│  • STT → GPT‑4o → TTS Processing         │
-└──────────────────────────────────────────┘
-```
-
-1. **React → FastAPI**: 사용자의 음성 스트림이 서버로 전송됩니다.
-
-2. **FastAPI → Azure**: 서버가 음성 스트림을 Azure로 중계합니다.
-
-3. **Azure → FastAPI**: AI가 생성한 응답 스트림이 서버로 반환됩니다.
-
-4. **FastAPI → React**: 서버가 최종 응답 스트림을 브라우저로 전송하여 출력합니다.
-
+1.  **개발 및 푸시**: 개발자가 코드를 수정하고 `devops` 브랜치에 `git push` 합니다.
+2.  **CI (지속적 통합)**: GitHub Actions가 코드 변경을 감지하고, 자동으로 `frontend`와 `backend`의 Docker 이미지를 빌드하여 Google Artifact Registry에 업로드합니다.
+3.  **CD (지속적 배포)**: CI가 성공하면, GitHub Actions는 새로 빌드된 이미지를 사용하여 Google Cloud Run에 자동으로 서비스를 배포(업데이트)합니다.
+4.  **서비스 실행**: 배포된 프론트엔드와 백엔드는 클라우드 환경에서 서로 통신하며 사용자에게 실시간 음성 AI 서비스를 제공합니다.
 
 ---
 
 ## 기술 스택 (Technology Stack)
 
-* **Frontend**:
-    * React 18+
-    * Tailwind CSS
-    * Lucide React (Icons)
-* **Backend**:
-    * Python 3.9+
-    * FastAPI
-    * Uvicorn (ASGI Server)
-* **핵심 Azure 서비스**:
-    * Azure AI Speech - Voice Live API (Preview)
-    * Azure OpenAI Service (GPT-4o)
-* **주요 라이브러리**:
-    * `websockets`: FastAPI와 Azure 간의 비동기 WebSocket 통신
-    * `python-dotenv`: 환경 변수 관리
+-   **Frontend**: React 18+, Tailwind CSS
+-   **Backend**: Python 3.11+, FastAPI, Uvicorn
+-   **Cloud & DevOps**:
+    -   **컨테이너**: Docker, Docker Compose
+    -   **CI/CD**: GitHub Actions
+    -   **클라우드 플랫폼**: Google Cloud Run, Google Artifact Registry, Google Secret Manager
+-   **AI Service**: Azure AI Speech (Voice Live API), Azure OpenAI (GPT-4o)
 
 ---
 
-## 설치 및 실행 방법 (Setup and Run)
+## 로컬 개발 환경 실행 방법 (Local Development)
+
+이 프로젝트는 Docker를 사용하여 로컬 환경에서 손쉽게 실행할 수 있습니다.
 
 ### 1. 사전 준비 (Prerequisites)
 
-* Python 3.9 이상, Node.js 18 이상
-* Azure 구독 및 **Voice Live API** 접근 권한이 활성화된 Azure AI Speech 리소스
-* Azure OpenAI 리소스 및 `gpt-4o` 모델 배포
+-   Docker Desktop 설치
+-   프로젝트 루트에 `backend/.env` 파일 생성 (아래 내용 참조)
 
-### 2. 프로젝트 클론 및 설정
-
-프로젝트를 클론한 후, `backend`와 `frontend` 각각의 디렉터리에서 종속성을 설치해야 합니다.
-
-```bash
-# 1. 프로젝트 코드를 클론합니다.
-git clone https://github.com/sts04038/Live-Voice-Agent.git
-cd Live-Voice-Agent
-```
-
-#### Backend (FastAPI) 설정
-
-```bash
-# 1. backend 디렉터리로 이동
-cd backend
-
-# 2. Python 가상환경 생성 및 활성화
-python3 -m venv venv
-source venv/bin/activate  # macOS/Linux
-# venv\Scripts\activate  # Windows
-
-# 3. 필요한 패키지 설치
-pip install -r requirements.txt
-
-# 4. 환경 변수 설정
-# .env.example 파일을 복사하여 .env 파일을 생성합니다.
-cp .env.example .env
-```
-
-`.env` 파일을 열어 자신의 Azure 리소스 정보를 채워 넣습니다.
+`backend` 폴더 안에 `.env` 파일을 만들고 자신의 Azure 리소스 정보를 채워 넣습니다.
 
 ```env
 # backend/.env
 
-# Azure Voice Live API (Speech Service) 정보
 AZURE_VOICE_LIVE_ENDPOINT="YOUR_SPEECH_RESOURCE_ENDPOINT"
 AZURE_VOICE_LIVE_API_KEY="YOUR_SPEECH_RESOURCE_KEY"
-
-# 사용할 AI 모델 (Azure OpenAI 배포 이름)
 VOICE_LIVE_MODEL="gpt-4o"
-
-# API 버전 (현재 프리뷰 버전)
 AZURE_VOICE_LIVE_API_VERSION="2025-05-01-preview"
 ```
 
-#### Frontend (React) 설정
+### 2. 실행
+
+프로젝트 최상위 폴더에서 아래 명령어를 실행합니다.
 
 ```bash
-# 1. frontend 디렉터리로 이동 (프로젝트 루트에서)
-cd frontend
-
-# 2. 필요한 패키지 설치
-npm install
+docker-compose up --build
 ```
 
-### 3. 애플리케이션 실행
+웹 브라우저에서 `http://localhost:5173` 주소로 접속하여 애플리케이션을 테스트할 수 있습니다.
 
-두 개의 터미널을 열고 각각 백엔드 서버와 프론트엔드 개발 서버를 실행합니다.
+---
 
-**터미널 1: Backend 실행**
+## 배포 (Deployment)
 
-```bash
-cd backend
-source venv/bin/activate # 가상환경 활성화
-uvicorn server:app --host 0.0.0.0 --port 8000 --reload
-```
+이 프로젝트는 **GitHub Actions**를 통해 `devops` 브랜치에 코드가 `push`될 때마다 **자동으로 Google Cloud Run에 배포**됩니다. 수동 배포 과정은 필요하지 않습니다.
 
-**터미널 2: Frontend 실행**
-
-```bash
-cd frontend
-npm run dev
-```
-
-실행 후, 터미널에 나타나는 주소(`http://localhost:5173` 등)를 웹 브라우저에서 열어 애플리케이션을 사용할 수 있습니다.
+배포 워크플로우는 `.github/workflows/build-and-push.yml` 파일에 정의되어 있습니다.
 
 ---
 

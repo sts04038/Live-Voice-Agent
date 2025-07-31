@@ -88,6 +88,24 @@ docker-compose up --build
 
 ---
 
+## 프로젝트 발전 과정 (Project History)
+
+이 저장소는 아이디어 검증부터 완전한 클라우드 네이티브 서비스까지의 전체 개발 과정을 담고 있습니다. 각 주요 단계는 별도의 브랜치에 보존되어 있습니다.
+
+* **`legacy-python-version`**: [**1차 프로젝트 바로가기**](https://github.com/sts04038/Live-Voice-Agent/tree/legacy-python-version)
+    * **형태**: Python 콘솔 스크립트
+    * **설명**: Azure Voice Live API의 핵심 기능인 실시간 양방향 오디오 스트리밍의 기술적 가능성을 검증한 초기 프로토타입(Proof of Concept)입니다.
+
+* **`react`**: [**2차 프로젝트 바로가기**](https://github.com/sts04038/Live-Voice-Agent/tree/react)
+    * **형태**: React + FastAPI 웹 애플리케이션
+    * **설명**: 1차에서 검증된 기술을 바탕으로, 실제 사용자가 웹 브라우저를 통해 쉽게 사용할 수 있도록 현대적인 프론트엔드와 백엔드 구조로 개발한 버전입니다.
+
+* **`main`**: **3차 프로젝트 (현재 버전)**
+    * **형태**: CI/CD로 자동 배포되는 클라우드 네이티브 서비스
+    * **설명**: 2차에서 개발된 웹 앱을 Docker로 컨테이너화하고, GitHub Actions와 Google Cloud Run을 이용해 배포를 완전히 자동화한 최종 버전입니다.
+
+---
+
 ## 라이선스 (License)
 
 이 프로젝트는 [MIT 라이선스](LICENSE)를 따릅니다.

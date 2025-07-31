@@ -8,12 +8,6 @@
 
 ---
 
-<p align="center">
-  <img src="./assets/voiceagnetView.png" width="100%">
-</p>
-
----
-
 **React, FastAPI, Azure Voice Live API를 기반으로 구축하고, Docker와 GitHub Actions를 통해 Google Cloud Run에 자동으로 배포되는 실시간 AI 음성 상담원 웹 애플리케이션입니다.**
 
 이 프로젝트는 웹 애플리케이션 개발을 넘어, **컨테이너화(Docker)**, **CI/CD 파이프라인(GitHub Actions)**, **클라우드 배포(GCP)**를 포함하는 현대적인 DevOps 워크플로우를 적용하여 안정적이고 확장 가능한 클라우드 네이티브 서비스를 구축하는 것을 목표로 합니다.
@@ -41,6 +35,14 @@
 2.  **CI (지속적 통합)**: GitHub Actions가 코드 변경을 감지하고, 자동으로 `frontend`와 `backend`의 Docker 이미지를 빌드하여 Google Artifact Registry에 업로드합니다.
 3.  **CD (지속적 배포)**: CI가 성공하면, GitHub Actions는 새로 빌드된 이미지를 사용하여 Google Cloud Run에 자동으로 서비스를 배포(업데이트)합니다.
 4.  **서비스 실행**: 배포된 프론트엔드와 백엔드는 클라우드 환경에서 서로 통신하며 사용자에게 실시간 음성 AI 서비스를 제공합니다.
+
+---
+
+## 서비스 화면
+
+<p align="center">
+  <img src="./assets/voiceagnetView.png" width="100%">
+</p>
 
 ---
 

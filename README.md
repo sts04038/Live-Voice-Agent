@@ -6,6 +6,14 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688.svg?logo=fastapi)](https://fastapi.tiangolo.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+---
+
+<p align="center">
+  <img src="./assets/voiceagnetView.png" width="100%">
+</p>
+
+---
+
 **React, FastAPI, Azure Voice Live API를 기반으로 구축하고, Docker와 GitHub Actions를 통해 Google Cloud Run에 자동으로 배포되는 실시간 AI 음성 상담원 웹 애플리케이션입니다.**
 
 이 프로젝트는 웹 애플리케이션 개발을 넘어, **컨테이너화(Docker)**, **CI/CD 파이프라인(GitHub Actions)**, **클라우드 배포(GCP)**를 포함하는 현대적인 DevOps 워크플로우를 적용하여 안정적이고 확장 가능한 클라우드 네이티브 서비스를 구축하는 것을 목표로 합니다.
